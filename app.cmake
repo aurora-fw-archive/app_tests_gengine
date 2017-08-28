@@ -1,4 +1,4 @@
-message(STATUS "Loading tests-gengine module...")
+message(STATUS "Loading tests-gengine app...")
 
 if (NOT CONFIGURED_ONCE)
 	set(APP_TESTS_GENGINE_SOURCE_DIR ${APP_TESTS_GENGINE_DIR}/src)
