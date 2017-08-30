@@ -1,15 +1,24 @@
-// ┌─┐┬ ┬┬─┐┌─┐┬─┐┌─┐  ┌─┐┬─┐┌─┐┌┬┐┌─┐┬ ┬┌─┐┬─┐┬┌─ | Powerful, Scalable and Cross Platform Framework
-// ├─┤│ │├┬┘│ │├┬┘├─┤  ├┤ ├┬┘├─┤│││├┤ ││││ │├┬┘├┴┐ | @author Luís Ferreira
-// ┴ ┴└─┘┴└─└─┘┴└─┴ ┴  └  ┴└─┴ ┴┴ ┴└─┘└┴┘└─┘┴└─┴ ┴ | @license GNU Public License v3
-//  Copyright (c) 2016 - Luís Ferreira. All right reserved
-//  More information in: https://github.com/ljmf00/ (Github Page)
+/****************************************************************************
+** ┌─┐┬ ┬┬─┐┌─┐┬─┐┌─┐  ┌─┐┬─┐┌─┐┌┬┐┌─┐┬ ┬┌─┐┬─┐┬┌─
+** ├─┤│ │├┬┘│ │├┬┘├─┤  ├┤ ├┬┘├─┤│││├┤ ││││ │├┬┘├┴┐
+** ┴ ┴└─┘┴└─└─┘┴└─┴ ┴  └  ┴└─┴ ┴┴ ┴└─┘└┴┘└─┘┴└─┴ ┴
+** A Powerful General Purpose Framework
+** More information in: https://aurora-fw.github.io/
+**
+** Copyright (C) 2017 Aurora Framework, All rights reserved.
+**
+** This file is part of the Aurora Framework. This framework is free
+** software; you can redistribute it and/or modify it under the terms of
+** the GNU Lesser General Public License version 3 as published by the
+** Free Software Foundation and appearing in the file LICENSE included in
+** the packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
+****************************************************************************/
 
-// File: src/Examples/src/test_gengine.cpp
-// Contains: Tests and Examples for Aurora Framework (Graphical Engine Example)
+#include <AuroraFW/Aurora.h>
 
-#include <Aurora/Aurora.h>
-
-using namespace Aurora;
+using namespace AuroraFW;
 
 Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
@@ -25,7 +34,7 @@ GLint faces[6][4] = {  /* Vertex indices for the 6 faces of a cube. */
 GLfloat v[8][3];  /* Will be filled in with X,Y,Z vertexes. */
 
 ArSlot_t slot_Window_on_render(GEngine::Window* window) {
-	//Shell::Output << window->getWidth() << "*" << window->getHeight() << Shell::EndLine;
+	//CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
 	/* DEBUG ONLY!!!
 
 	glBegin(GL_TRIANGLES);
@@ -50,7 +59,7 @@ ArSlot_t slot_Window_on_render(GEngine::Window* window) {
 ArSlot_t slot_MyApp_on_open()
 {
 	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(800, 600, false, true));
-	Shell::Log(Shell::Information, "OpenGL Version: ", GEngine::getGLVersion());
+	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
 
 
 	//DEBUG ONLY!!!
