@@ -33,9 +33,13 @@ GLint faces[6][4] = {  /* Vertex indices for the 6 faces of a cube. */
   {4, 5, 1, 0}, {5, 6, 2, 1}, {7, 4, 0, 3} };
 GLfloat v[8][3];  /* Will be filled in with X,Y,Z vertexes. */
 
-ArSlot_t slot_Window_on_render(GEngine::Window* window) {
+double mx, my;
+
+ArSlot_t slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
 	//CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
-	/* DEBUG ONLY!!!
+    inputHandler->getMousePosition(mx, my);
+    CLI::Output << mx << ", " << my << CLI::EndLine;
+    /* DEBUG ONLY!!!
 
 	glBegin(GL_TRIANGLES);
 	glVertex2f(-0.5f, -0.5f);
@@ -59,8 +63,9 @@ ArSlot_t slot_Window_on_render(GEngine::Window* window) {
 ArSlot_t slot_MyApp_on_open()
 {
 	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(800, 600, false, true));
-	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
+    GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
 
+	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
 
 	//DEBUG ONLY!!!
 	glClearColor(1.0f, 0.55f, 0.0f, 1.0f);
@@ -104,7 +109,7 @@ ArSlot_t slot_MyApp_on_open()
 	while(!window->isClosed())
 	{
 		window->Clear();
-		slot_Window_on_render(window);
+		slot_Window_on_render(window, inputHandler);
 		window->Update();
 	}
 	Application::ExitSuccess();
