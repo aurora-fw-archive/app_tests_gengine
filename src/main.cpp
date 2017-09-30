@@ -108,9 +108,9 @@ ArSlot_t slot_MyApp_on_open()
 
 	while(!window->isClosed())
 	{
-		window->Clear();
+		window->clear();
 		slot_Window_on_render(window, inputHandler);
-		window->Update();
+		window->update();
 	}
 	Application::ExitSuccess();
 }
