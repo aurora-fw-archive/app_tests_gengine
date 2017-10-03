@@ -31,10 +31,9 @@ ArSlot_t appMainFunction()
 	{
 		for (int j = 0; j < height; j++)
 		{
-			color.rgbRed = (double)i / width * 255.0;
-			color.rgbGreen = 0;
-			color.rgbBlue = (double)j / width * 255.0;
-
+			color.rgbRed = (float)j / width * 255.0f;
+			color.rgbGreen = (float)abs(j-height) / width * 255.0f;
+			color.rgbBlue = (float)i / width * 255.0f;
 			FreeImage_SetPixelColor(image, i, j, &color);
 		}
 	}
