@@ -21,7 +21,10 @@ if (NOT CONFIGURED_ONCE)
 endif()
 
 add_executable(aurorafw_app_tests_gengine ${AURORAFW_APP_TESTS_GENGINE_SOURCE_DIR}/main.cpp)
+add_executable(aurorafw_app_tests_imageLoading ${AURORAFW_APP_TESTS_GENGINE_SOURCE_DIR}/testImageLoading.cpp)
 
 target_link_libraries(aurorafw_app_tests_gengine aurorafw-core aurorafw-gengine-core)
+target_link_libraries(aurorafw_app_tests_imageLoading aurorafw-core aurorafw-gengine-core)
 
 set_target_properties(aurorafw_app_tests_gengine PROPERTIES OUTPUT_NAME aurorafw_app_tests_gengine.out)
+set_target_properties(aurorafw_app_tests_imageLoading PROPERTIES OUTPUT_NAME aurorafw_app_tests_imageLoading.out)
