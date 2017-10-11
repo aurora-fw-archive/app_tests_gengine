@@ -36,10 +36,10 @@ GLfloat v[8][3];  /* Will be filled in with X,Y,Z vertexes. */
 
 double mx, my;
 
-ArSlot_t slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
-	//CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
-	//inputHandler->getMousePosition(mx, my);
-	//CLI::Output << mx << ", " << my << CLI::EndLine;
+afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
+	CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
+	inputHandler->getMousePosition(mx, my);
+	CLI::Output << mx << ", " << my << CLI::EndLine;
 	/* DEBUG ONLY!!!
 
 	glBegin(GL_TRIANGLES);
@@ -61,7 +61,7 @@ ArSlot_t slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* i
 	glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
 }
 
-ArSlot_t slot_MyApp_on_open()
+afwslot slot_MyApp_on_open()
 {
 	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(800, 600, false, true));
 	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);

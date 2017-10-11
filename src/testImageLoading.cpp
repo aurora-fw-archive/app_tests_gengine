@@ -8,11 +8,10 @@ int width = 255, height = 255, bpp = 24;
 
 Application *app;
 
-ArSlot_t appMainFunction()
+afwslot appMainFunction()
 {
 	// Initializes FreeImage
 	FreeImage_Initialise();
-	
 	CLI::Log(CLI::Information, "FreeImage has successfully initialized.");
 	CLI::Log(CLI::Information, "FreeImage's version: ", FreeImage_GetVersion());
 	CLI::Log(CLI::Information, "FreeImage's Copyright message: ", FreeImage_GetCopyrightMessage());
@@ -23,7 +22,6 @@ ArSlot_t appMainFunction()
 
 	if(image == nullptr)
 		return;
-	
 	CLI::Log(CLI::Information, "Allocated space for new image");
 
 	// Starts drawing the puke image
@@ -45,7 +43,7 @@ ArSlot_t appMainFunction()
 		CLI::Log(CLI::Information, "Success! The image was saved!");
 	else
 		CLI::Log(CLI::Information, "Error! The image couldn't be saved!");
-
+	
 	FreeImage_DeInitialise();
 	CLI::Log(CLI::Information, "FreeImage was deinitialised.");
 	
