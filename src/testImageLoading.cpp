@@ -1,9 +1,10 @@
 #include <AuroraFW/Aurora.h>
+#include <AuroraFW/Math/Algorithm.h>
 #include <FreeImage.h>
 
 using namespace AuroraFW;
 
-int width = 800, height = 600, bpp = 24;
+int width = 255, height = 255, bpp = 24;
 
 Application *app;
 
@@ -27,11 +28,11 @@ ArSlot_t appMainFunction()
 
 	// Starts drawing the puke image
 
-	for(int i = 0; i < width; i++)
+	for (int i = 0; i < width; i++)
 	{
 		for (int j = 0; j < height; j++)
 		{
-			color.rgbRed = (float)j / width * 255.0f;
+			color.rgbRed = (float)Math::clamp(j-i, 0, height) / width * 255.0f;
 			color.rgbGreen = (float)abs(j-height) / width * 255.0f;
 			color.rgbBlue = (float)i / width * 255.0f;
 			FreeImage_SetPixelColor(image, i, j, &color);
