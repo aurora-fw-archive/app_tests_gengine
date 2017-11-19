@@ -18,11 +18,15 @@
 
 #include <AuroraFW/Aurora.h>
 #include <AuroraFW/GEngine/Color.h>
+#include <AuroraFW/GEngine/GL/Shader.h>
+#include <AuroraFW/GEngine/GL/Program.h>
+#include <AuroraFW/IO/File.h>
 
 using namespace AuroraFW;
 
 Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
+GEngine::GLProgram *sunprogram;
 
 GLfloat light_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};  /* White diffuse light. */
 GLfloat light_position[] = {1.0f, 3.0f, 1.0f, 0.2f};  /* Infinite light location. */
@@ -40,13 +44,13 @@ afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* in
 	CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
 	inputHandler->getMousePosition(mx, my);
 	CLI::Output << mx << ", " << my << CLI::EndLine;
-	/* DEBUG ONLY!!!
-
+	//DEBUG ONLY!!!
+	/*
 	glBegin(GL_TRIANGLES);
 	glVertex2f(-0.5f, -0.5f);
 	glVertex2f(0.5f, 0.5f);
 	glVertex2f(0.5f, -0.5f);
-	glEnd();*/
+	glEnd();
 	int i;
 
 	for (i = 0; i < 6; i++) {
@@ -59,25 +63,64 @@ afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* in
 	glEnd();
 	}
 	glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
+	*/
+	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / 600.0f), (float)(0.5f - my * 0.5f / 600.0f)));
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 afwslot slot_MyApp_on_open()
 {
-	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(800, 600, false, true));
+	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(600, 600, false, true));
 	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
 
-	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::BlueViolet);
+	GLfloat vertices[] = 
+	{
+		-0.5f, -0.5f,  0.0f,
+		-0.5f,  0.5f,  0.0f,
+		 0.5f,  0.5f,  0.0f,
+		 0.5f,  0.5f,  0.0f,
+		 0.5f, -0.5f,  0.0f,
+		-0.5f, -0.5f,  0.0f
+	};
+
+	GLuint vbo;
+	glGenBuffers(1, &vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+	glEnableVertexAttribArray(0);
+	
+	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex, "Clouds");
+	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment, "Clouds");
+	sunshader_vert->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.vert").c_str());
+	sunshader_frag->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.frag").c_str());
+
+	sunprogram = new GEngine::GLProgram("Clouds");
+	sunprogram->addShader(sunshader_vert);
+	sunprogram->addShader(sunshader_frag);
+	sunprogram->generate();
+	delete sunshader_frag;
+	delete sunshader_vert; 
+	sunprogram->enable();
+	Math::Matrix4x4 ortho = Math::Matrix4x4::orthographic(0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f);
+	sunprogram->setUniformMat4("pr_matrix", ortho);
+	sunprogram->setUniformMat4("ml_matrix", Math::Matrix4x4::translate(Math::Vector3D(0, 0, 0)));
+	sunprogram->setUniform2f("light_pos", Math::Vector2D(0.5f, 0.5f));
+	GEngine::ColorF pointerColor = GEngine::ColorF(GEngine::CommonColor::Brown);
+	sunprogram->setUniform4f("colour", Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a));
+	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Tomato);
 	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
+	#if(0)
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
 	//...
 
 	/* Setup cube vertex data. */
-	v[0][0] = v[1][0] = v[2][0] = v[3][0] = -1;
+	v[0][0] = v[1][0] = v[2][0] = v[3][0] = -1;540
 	v[4][0] = v[5][0] = v[6][0] = v[7][0] = 1;
 	v[0][1] = v[1][1] = v[4][1] = v[5][1] = -1;
 	v[2][1] = v[3][1] = v[6][1] = v[7][1] = 1;
@@ -106,6 +149,7 @@ afwslot slot_MyApp_on_open()
 	glTranslatef(0.0, 0.0, -1.0);
 	glRotatef(60, 1.0, 0.0, 0.0);
 	glRotatef(45, 0.0, 0.0, 1.0);
+	#endif
 
 	while(!window->isClosed())
 	{
