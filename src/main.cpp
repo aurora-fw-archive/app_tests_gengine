@@ -64,13 +64,13 @@ afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* in
 	}
 	glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
 	*/
-	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / 600.0f), (float)(0.5f - my * 0.5f / 600.0f)));
+	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 afwslot slot_MyApp_on_open()
 {
-	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(600, 600, false, true));
+	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(600, 600, false));
 	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
