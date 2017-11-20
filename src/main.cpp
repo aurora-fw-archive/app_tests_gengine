@@ -75,8 +75,7 @@ afwslot slot_MyApp_on_open()
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
 
-	GLfloat vertices[] = 
-	{
+	GLfloat vertices[] = {
 		-0.5f, -0.5f,  0.0f,
 		-0.5f,  0.5f,  0.0f,
 		 0.5f,  0.5f,  0.0f,
@@ -102,7 +101,7 @@ afwslot slot_MyApp_on_open()
 	sunprogram->addShader(sunshader_frag);
 	sunprogram->generate();
 	delete sunshader_frag;
-	delete sunshader_vert; 
+	delete sunshader_vert;
 	sunprogram->enable();
 	Math::Matrix4x4 ortho = Math::Matrix4x4::orthographic(0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f);
 	sunprogram->setUniformMat4("pr_matrix", ortho);
