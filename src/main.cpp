@@ -41,9 +41,9 @@ GLfloat v[8][3];  /* Will be filled in with X,Y,Z vertexes. */
 double mx, my;
 
 afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
-	CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
+	//CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
 	inputHandler->getMousePosition(mx, my);
-	CLI::Output << mx << ", " << my << CLI::EndLine;
+	//CLI::Output << mx << ", " << my << CLI::EndLine;
 	//DEBUG ONLY!!!
 	/*
 	glBegin(GL_TRIANGLES);
@@ -74,6 +74,7 @@ afwslot slot_MyApp_on_open()
 	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
+	CLI::Log(CLI::Information, "GLSL Version: ", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	GLfloat vertices[] = {
 		-0.5f, -0.5f,  0.0f,
@@ -109,7 +110,7 @@ afwslot slot_MyApp_on_open()
 	sunprogram->setUniform2f("light_pos", Math::Vector2D(0.5f, 0.5f));
 	GEngine::ColorF pointerColor = GEngine::ColorF(GEngine::CommonColor::Brown);
 	sunprogram->setUniform4f("colour", Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a));
-	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Tomato);
+	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
 	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
 	#if(0)
