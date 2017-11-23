@@ -28,42 +28,12 @@ Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
 GEngine::GLProgram *sunprogram;
 
-GLfloat light_diffuse[] = {1.0f, 1.0f, 1.0f, 0.0f};  /* White diffuse light. */
-GLfloat light_position[] = {1.0f, 3.0f, 1.0f, 0.2f};  /* Infinite light location. */
-GLfloat n[6][3] = {  /* Normals for the 6 faces of a cube. */
-	{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {1.0, 0.0, 0.0},
-	{0.0, -1.0, 0.0}, {0.0, 0.0, 1.0}, {0.0, 0.0, -1.0} };
-GLint faces[6][4] = {  /* Vertex indices for the 6 faces of a cube. */
-	{0, 1, 2, 3}, {3, 2, 6, 7}, {7, 6, 5, 4},
-	{4, 5, 1, 0}, {5, 6, 2, 1}, {7, 4, 0, 3} };
-GLfloat v[8][3];  /* Will be filled in with X,Y,Z vertexes. */
-
 double mx, my;
 
 afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
-	//CLI::Output << window->getWidth() << "*" << window->getHeight() << CLI::EndLine;
+	Debug::Log(window->getWidth(), "*", window->getHeight());
 	inputHandler->getMousePosition(mx, my);
-	//CLI::Output << mx << ", " << my << CLI::EndLine;
-	//DEBUG ONLY!!!
-	/*
-	glBegin(GL_TRIANGLES);
-	glVertex2f(-0.5f, -0.5f);
-	glVertex2f(0.5f, 0.5f);
-	glVertex2f(0.5f, -0.5f);
-	glEnd();
-	int i;
-
-	for (i = 0; i < 6; i++) {
-	glBegin(GL_QUADS);
-	glNormal3fv(&n[i][0]);
-	glVertex3fv(&v[faces[i][0]][0]);
-	glVertex3fv(&v[faces[i][1]][0]);
-	glVertex3fv(&v[faces[i][2]][0]);
-	glVertex3fv(&v[faces[i][3]][0]);
-	glEnd();
-	}
-	glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
-	*/
+	Debug::Log(mx, ", ", my);
 	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
