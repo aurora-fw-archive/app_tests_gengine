@@ -17,10 +17,6 @@
 ****************************************************************************/
 
 #include <AuroraFW/Aurora.h>
-#include <AuroraFW/GEngine/Color.h>
-#include <AuroraFW/GEngine/GL/Shader.h>
-#include <AuroraFW/GEngine/GL/Program.h>
-#include <AuroraFW/IO/File.h>
 
 using namespace AuroraFW;
 
