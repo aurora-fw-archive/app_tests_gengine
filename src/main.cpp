@@ -22,27 +22,57 @@ using namespace AuroraFW;
 
 Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
+GEngine::WindowProperties wp = GEngine::WindowProperties(600, 600, false);
+GEngine::Window *window;
+GEngine::InputManager *inputHandler;
 GEngine::GLProgram *sunprogram;
 IO::Timer MyTimer = IO::Timer();
 
-double mx, my;
+Math::Vector4D color_vec;
 
-afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* inputHandler) {
-	Debug::Log(window->getWidth(), "*", window->getHeight());
+double mx, my;
+float sunsize = 0.05f;
+
+afwslot slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
-	Debug::Log(mx, ", ", my);
-	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
+	if(inputHandler->isKeyPressed(GLFW_KEY_INSERT)) {
+		sunsize -= 0.001f;
+		sunprogram->setValue("size", sunsize);
+	}
+	if(inputHandler->isKeyPressed(GLFW_KEY_DELETE)) {
+		sunsize += 0.001f;
+		sunprogram->setValue("size", sunsize);
+	}
+
+	if(inputHandler->isKeyPressed(GLFW_KEY_1)) {
+		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.x -= 0.01f;
+		else color_vec.x += 0.01f;
+		sunprogram->setValue("colour", color_vec);
+	}
+
+	if(inputHandler->isKeyPressed(GLFW_KEY_2)) {
+		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.y -= 0.01f;
+		else color_vec.y += 0.01f;
+		sunprogram->setValue("colour", color_vec);
+	}
+
+	if(inputHandler->isKeyPressed(GLFW_KEY_3)) {
+		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.z -= 0.01f;
+		else color_vec.z += 0.01f;
+		sunprogram->setValue("colour", color_vec);
+	}
+
+	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
 	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 }
 
 afwslot slot_MyApp_on_open()
 {
-	GEngine::WindowProperties winp = GEngine::WindowProperties(600, 600, false);
-	winp.vsync = false;
-	GEngine::Window *window = new GEngine::Window(MyGApp, "Testing GEngine", winp);
-	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
+	window = new GEngine::Window(MyGApp, "Testing GEngine", wp);
+	inputHandler = new GEngine::InputManager(window);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
+	CLI::Log(CLI::Information, "OpenGL Renderer: ", glGetString(GL_RENDERER));
 	CLI::Log(CLI::Information, "GLSL Version: ", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 	GLfloat vertices[] = {
@@ -53,7 +83,9 @@ afwslot slot_MyApp_on_open()
 		 0.5f, -0.5f,  0.0f,
 		-0.5f, -0.5f,  0.0f
 	};
-	GLfloat cube_vertices[]=
+
+	/*
+	GLfloat cube_vertices[] =
 	{
 		 1.f,  1.f,  1.f,	1.0f, 0.0f, 0.0f, //0
 		-1.f,  1.f,  1.f,	0.0f, 1.0f, 0.0f, //1
@@ -64,7 +96,7 @@ afwslot slot_MyApp_on_open()
 		-1.f, -1.f, -1.f,	0.0f, 1.0f, 1.0f, //6
 		 1.f, -1.f, -1.f,	1.0f, 0.0f, 1.0f  //7
 	};
-	GLuint cube_indices[] = 
+	GLuint cube_indices[] =
 	{
 		0, 1, 3, //top 1
 		3, 1, 2, //top 2
@@ -79,6 +111,7 @@ afwslot slot_MyApp_on_open()
 		5, 6, 2, //left 1
 		5, 1, 2  //left 2
 	};
+	*/
 
 	GLuint vao;
 	GLCall(glGenVertexArrays(1, &vao));
@@ -92,12 +125,12 @@ afwslot slot_MyApp_on_open()
 	GLCall(glEnableVertexAttribArray(0));
 	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
 	
-	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex, "Clouds");
-	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment, "Clouds");
+	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex);
+	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment);
 	sunshader_vert->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.vert").c_str());
 	sunshader_frag->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.frag").c_str());
 
-	sunprogram = new GEngine::GLProgram("Clouds");
+	sunprogram = new GEngine::GLProgram();
 	sunprogram->addShader(sunshader_vert);
 	sunprogram->addShader(sunshader_frag);
 	sunprogram->generate();
@@ -105,11 +138,13 @@ afwslot slot_MyApp_on_open()
 	delete sunshader_vert;
 	sunprogram->enable();
 	Math::Matrix4x4 ortho = Math::Matrix4x4::orthographic(0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f);
-	sunprogram->setUniformMat4("pr_matrix", ortho);
-	sunprogram->setUniformMat4("ml_matrix", Math::Matrix4x4::translate(Math::Vector3D(0, 0, 0)));
-	sunprogram->setUniform2f("light_pos", Math::Vector2D(0.5f, 0.5f));
+	sunprogram->setValue("pr_matrix", ortho);
+	sunprogram->setValue("ml_matrix", Math::Matrix4x4::translate(Math::Vector3D(0, 0, 0)));
+	sunprogram->setValue("light_pos", Math::Vector2D(0.5f, 0.5f));
+	sunprogram->setValue("size", 0.05f);
 	GEngine::ColorF pointerColor = GEngine::ColorF(GEngine::CommonColor::Brown);
-	sunprogram->setUniform4f("colour", Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a));
+	color_vec = Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a);
+	sunprogram->setValue("colour", color_vec);
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
 	GLCall(glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a));
 
@@ -117,9 +152,11 @@ afwslot slot_MyApp_on_open()
 	{
 		MyTimer.reset();
 		window->clear();
-		slot_Window_on_render(window, inputHandler);
+		slot_Window_on_render();
 		window->update();
-		Debug::Log("FPS: ", (1000/MyTimer.elapsedMillis()));
+		Debug::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
+		Debug::Log("Size:\t", window->getWidth(), "*", window->getHeight());
+		Debug::Log("Input:\t", mx, ", ", my);
 	}
 	Application::ExitSuccess();
 }
