@@ -31,7 +31,7 @@ afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* in
 	inputHandler->getMousePosition(mx, my);
 	Debug::Log(mx, ", ", my);
 	sunprogram->setUniform2f("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
-	glDrawArrays(GL_TRIANGLES, 0, 6);
+	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
 }
 
 afwslot slot_MyApp_on_open()
@@ -50,13 +50,44 @@ afwslot slot_MyApp_on_open()
 		 0.5f, -0.5f,  0.0f,
 		-0.5f, -0.5f,  0.0f
 	};
+	GLfloat cube_vertices[]=
+	{
+		 1.f,  1.f,  1.f,	1.0f, 0.0f, 0.0f, //0
+		-1.f,  1.f,  1.f,	0.0f, 1.0f, 0.0f, //1
+		-1.f,  1.f, -1.f,	0.0f, 0.0f, 1.0f, //2
+		 1.f,  1.f, -1.f,	1.0f, 1.0f, 1.0f, //3
+		 1.f, -1.f,  1.f,	1.0f, 1.0f, 0.0f, //4
+		-1.f, -1.f,  1.f,	1.0f, 1.0f, 1.0f, //5
+		-1.f, -1.f, -1.f,	0.0f, 1.0f, 1.0f, //6
+		 1.f, -1.f, -1.f,	1.0f, 0.0f, 1.0f  //7
+	};
+	GLuint cube_indices[] = 
+	{
+		0, 1, 3, //top 1
+		3, 1, 2, //top 2
+		2, 6, 7, //front 1
+		7, 3, 2, //front 2
+		7, 6, 5, //bottom 1
+		5, 4, 7, //bottom 2
+		5, 1, 4, //back 1
+		4, 1, 0, //back 2
+		4, 3, 7, //right 1
+		3, 4, 0, //right 2
+		5, 6, 2, //left 1
+		5, 1, 2  //left 2
+	};
+
+	GLuint vao;
+	GLCall(glGenVertexArrays(1, &vao));
+	GLCall(glBindVertexArray(vao));
 
 	GLuint vbo;
-	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-	glEnableVertexAttribArray(0);
+	GLCall(glGenBuffers(1, &vbo));
+	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
+	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
+	
+	GLCall(glEnableVertexAttribArray(0));
+	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
 	
 	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex, "Clouds");
 	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment, "Clouds");
@@ -77,45 +108,7 @@ afwslot slot_MyApp_on_open()
 	GEngine::ColorF pointerColor = GEngine::ColorF(GEngine::CommonColor::Brown);
 	sunprogram->setUniform4f("colour", Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a));
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
-	glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
-
-	#if(0)
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
-	//...
-
-	/* Setup cube vertex data. */
-	v[0][0] = v[1][0] = v[2][0] = v[3][0] = -1;540
-	v[4][0] = v[5][0] = v[6][0] = v[7][0] = 1;
-	v[0][1] = v[1][1] = v[4][1] = v[5][1] = -1;
-	v[2][1] = v[3][1] = v[6][1] = v[7][1] = 1;
-	v[0][2] = v[3][2] = v[4][2] = v[7][2] = 1;
-	v[1][2] = v[2][2] = v[5][2] = v[6][2] = -1;
-
-	/* Enable a single OpenGL light. */  glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glEnable(GL_LIGHT0);
-	glEnable(GL_LIGHTING);
-
-	/* Use depth buffering for hidden surface elimination. */
-	glEnable(GL_DEPTH_TEST);
-
-	/* Setup the view of the cube. */
-	glMatrixMode(GL_PROJECTION);
-	gluPerspective( /* field of view in degree */ 45.0,
-	/* aspect ratio */ (4.0f/3.0f),
-	/* Z near */ 1.0, /* Z far */ 10.0);
-	glMatrixMode(GL_MODELVIEW);
-	gluLookAt(1.5f, 0.5f, 5.5f,  /* eye is at (0,0,5) */
-	0.0f, 0.0f, 0.0f,      /* center is at (0,0,0) */
-	0.0f, 1.0f, 0.0f);      /* up is in positive Y direction */
-
-	/* Adjust cube position to be asthetic angle. */
-	glTranslatef(0.0, 0.0, -1.0);
-	glRotatef(60, 1.0, 0.0, 0.0);
-	glRotatef(45, 0.0, 0.0, 1.0);
-	#endif
+	GLCall(glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a));
 
 	while(!window->isClosed())
 	{
