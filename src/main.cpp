@@ -23,6 +23,7 @@ using namespace AuroraFW;
 Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
 GEngine::GLProgram *sunprogram;
+IO::Timer MyTimer = IO::Timer();
 
 double mx, my;
 
@@ -36,7 +37,9 @@ afwslot slot_Window_on_render(GEngine::Window* window, GEngine::InputManager* in
 
 afwslot slot_MyApp_on_open()
 {
-	GEngine::Window* window = new GEngine::Window(MyGApp, "Testing GEngine", GEngine::WindowProperties(600, 600, false));
+	GEngine::WindowProperties winp = GEngine::WindowProperties(600, 600, false);
+	winp.vsync = false;
+	GEngine::Window *window = new GEngine::Window(MyGApp, "Testing GEngine", winp);
 	GEngine::InputManager* inputHandler = new GEngine::InputManager(window);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
@@ -112,9 +115,11 @@ afwslot slot_MyApp_on_open()
 
 	while(!window->isClosed())
 	{
+		MyTimer.reset();
 		window->clear();
 		slot_Window_on_render(window, inputHandler);
 		window->update();
+		Debug::Log("FPS: ", (1000/MyTimer.elapsedMillis()));
 	}
 	Application::ExitSuccess();
 }
