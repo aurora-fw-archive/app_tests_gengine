@@ -36,11 +36,11 @@ float sunsize = 0.05f;
 afwslot slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
 	if(inputHandler->isKeyPressed(GLFW_KEY_INSERT)) {
-		sunsize -= 0.001f;
+		sunsize += 0.001f;
 		sunprogram->setValue("size", sunsize);
 	}
 	if(inputHandler->isKeyPressed(GLFW_KEY_DELETE)) {
-		sunsize += 0.001f;
+		sunsize -= 0.001f;
 		sunprogram->setValue("size", sunsize);
 	}
 
