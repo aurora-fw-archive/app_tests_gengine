@@ -1,5 +1,6 @@
 #version 330 core
 
+precision highp float;
 layout (location = 0) in vec4 position;
 
 uniform mat4 pr_matrix;
