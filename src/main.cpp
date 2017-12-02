@@ -71,7 +71,8 @@ afwslot slot_MyApp_on_open()
 	window = new GEngine::Window(MyGApp, "Testing GEngine", wp);
 	inputHandler = new GEngine::InputManager(window);
 
-	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::getGLVersion());
+	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::GL::getVersion());
+	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
 	CLI::Log(CLI::Information, "OpenGL Renderer: ", glGetString(GL_RENDERER));
 	CLI::Log(CLI::Information, "GLSL Version: ", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
