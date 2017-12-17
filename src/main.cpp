@@ -33,6 +33,9 @@ Math::Vector4D color_vec;
 double mx, my;
 float sunsize = 0.05f;
 
+GEngine::GLBuffer* ibo;
+GEngine::GLVertexArray* pointSprite;
+
 afwslot slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
 	if(inputHandler->isKeyPressed(GLFW_KEY_INSERT)) {
@@ -63,7 +66,12 @@ afwslot slot_Window_on_render() {
 	}
 
 	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
-	GLCall(glDrawArrays(GL_TRIANGLES, 0, 6));
+
+	pointSprite->bind();
+	ibo->bind();
+	GLCall(glDrawElements(GL_TRIANGLES, ibo->size()/(sizeof(ushort)), GL_UNSIGNED_SHORT, AFW_NULL));
+	ibo->unbind();
+	pointSprite->unbind();
 }
 
 afwslot slot_MyApp_on_open()
@@ -79,52 +87,19 @@ afwslot slot_MyApp_on_open()
 	GLfloat vertices[] = {
 		-0.5f, -0.5f,  0.0f,
 		-0.5f,  0.5f,  0.0f,
-		 0.5f,  0.5f,  0.0f,
-		 0.5f,  0.5f,  0.0f,
-		 0.5f, -0.5f,  0.0f,
-		-0.5f, -0.5f,  0.0f
+		0.5f,  0.5f,  0.0f,
+		0.5f, -0.5f,  0.0f
 	};
 
-	/*
-	GLfloat cube_vertices[] =
-	{
-		 1.f,  1.f,  1.f,	1.0f, 0.0f, 0.0f, //0
-		-1.f,  1.f,  1.f,	0.0f, 1.0f, 0.0f, //1
-		-1.f,  1.f, -1.f,	0.0f, 0.0f, 1.0f, //2
-		 1.f,  1.f, -1.f,	1.0f, 1.0f, 1.0f, //3
-		 1.f, -1.f,  1.f,	1.0f, 1.0f, 0.0f, //4
-		-1.f, -1.f,  1.f,	1.0f, 1.0f, 1.0f, //5
-		-1.f, -1.f, -1.f,	0.0f, 1.0f, 1.0f, //6
-		 1.f, -1.f, -1.f,	1.0f, 0.0f, 1.0f  //7
+	GLushort indices[] = {
+		0, 1, 2,
+		2, 3, 0
 	};
-	GLuint cube_indices[] =
-	{
-		0, 1, 3, //top 1
-		3, 1, 2, //top 2
-		2, 6, 7, //front 1
-		7, 3, 2, //front 2
-		7, 6, 5, //bottom 1
-		5, 4, 7, //bottom 2
-		5, 1, 4, //back 1
-		4, 1, 0, //back 2
-		4, 3, 7, //right 1
-		3, 4, 0, //right 2
-		5, 6, 2, //left 1
-		5, 1, 2  //left 2
-	};
-	*/
 
-	GLuint vao;
-	GLCall(glGenVertexArrays(1, &vao));
-	GLCall(glBindVertexArray(vao));
+	ibo = new GEngine::GLBuffer(GEngine::GL::IndexBuffer, sizeof(indices), indices);
 
-	GLuint vbo;
-	GLCall(glGenBuffers(1, &vbo));
-	GLCall(glBindBuffer(GL_ARRAY_BUFFER, vbo));
-	GLCall(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW));
-	
-	GLCall(glEnableVertexAttribArray(0));
-	GLCall(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0));
+	pointSprite = new GEngine::GLVertexArray();
+	pointSprite->add(new GEngine::GLBuffer(GEngine::GL::Array, sizeof(vertices), vertices), 3, 0);
 	
 	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex);
 	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment);
