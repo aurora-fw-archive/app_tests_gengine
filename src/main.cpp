@@ -122,7 +122,7 @@ afwslot slot_MyApp_on_open()
 	color_vec = Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a);
 	sunprogram->setValue("colour", color_vec);
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
-	GLCall(glClearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a));
+	GEngine::GL::clearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
 	while(!window->isClosed())
 	{
