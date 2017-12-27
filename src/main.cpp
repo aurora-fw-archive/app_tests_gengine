@@ -99,8 +99,10 @@ afwslot slot_MyApp_on_open()
 	ibo = new GEngine::GLBuffer(GEngine::GL::IndexBuffer, sizeof(indices), indices);
 
 	pointSprite = new GEngine::GLVertexArray();
-	pointSprite->add(new GEngine::GLBuffer(GEngine::GL::Array, sizeof(vertices), vertices), 3, 0);
-	
+	GEngine::GLVertexBufferLayout spriteLayout;
+	spriteLayout.push<float>(3);
+	pointSprite->addBuffer(GEngine::GLBuffer(GEngine::GL::Array, sizeof(vertices), vertices), spriteLayout);
+
 	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex);
 	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment);
 	sunshader_vert->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.vert").c_str());
