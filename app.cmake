@@ -22,6 +22,6 @@ endif()
 
 add_executable(aurorafw_app_tests_gengine ${AURORAFW_APP_TESTS_GENGINE_SOURCE_DIR}/main.cpp)
 
-target_link_libraries(aurorafw_app_tests_gengine aurorafw-core aurorafw-cli aurorafw-io aurorafw-gengine-core)
+target_link_libraries(aurorafw_app_tests_gengine aurorafw-core aurorafw-cli aurorafw-io aurorafw-gengine-core aurorafw-audio)
 
 set_target_properties(aurorafw_app_tests_gengine PROPERTIES OUTPUT_NAME aurorafw_app_tests_gengine.out)
