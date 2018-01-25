@@ -65,7 +65,7 @@ afwslot slot_Window_on_render() {
 		sunprogram->setValue("colour", color_vec);
 	}
 
-	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5f / window->getWidth()), (float)(0.5f - my * 0.5f / window->getHeight())));
+	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5 / window->getWidth()), (float)(0.5 - my * 0.5 / window->getHeight())));
 
 	pointSprite->bind();
 	ibo->bind();
