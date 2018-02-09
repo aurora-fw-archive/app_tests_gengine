@@ -132,9 +132,9 @@ afwslot slot_MyApp_on_open()
 		window->clear();
 		slot_Window_on_render();
 		window->update();
-		Debug::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
-		Debug::Log("Size:\t", window->getWidth(), "*", window->getHeight());
-		Debug::Log("Input:\t", mx, ", ", my);
+		DebugManager::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
+		DebugManager::Log("Size:\t", window->getWidth(), "*", window->getHeight());
+		DebugManager::Log("Input:\t", mx, ", ", my);
 	}
 	Application::ExitSuccess();
 }
