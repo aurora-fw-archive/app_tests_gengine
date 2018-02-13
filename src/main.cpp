@@ -77,6 +77,9 @@ afwslot slot_Window_on_render() {
 
 afwslot slot_MyApp_on_open()
 {
+	wp.samples = 16;
+	wp.doubleBuffer = true;
+	wp.vsync = false;
 	window = new GEngine::Window("Testing GEngine", wp);
 	inputHandler = new GEngine::InputManager(window);
 	renderer = GEngine::Renderer::Load();
@@ -85,6 +88,9 @@ afwslot slot_MyApp_on_open()
 	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
 	CLI::Log(CLI::Information, "OpenGL Renderer: ", glGetString(GL_RENDERER));
 	CLI::Log(CLI::Information, "GLSL Version: ", glGetString(GL_SHADING_LANGUAGE_VERSION));
+	int samples;
+	GLCall(glGetIntegerv(GL_SAMPLES, &samples));
+	CLI::Log(CLI::Information, "Samples: ", samples);
 
 	GLfloat vertices[] = {
 		-0.5f, -0.5f,  0.0f,
