@@ -21,9 +21,10 @@
 using namespace AuroraFW;
 
 Application *MyApp;
-GEngine::Application MyGApp("Test GEngine", GEngine::GraphicsAPI::OpenGL);
+GEngine::Application MyGApp("Test GEngine", GEngine::API::OpenGL);
 GEngine::WindowProperties wp = GEngine::WindowProperties(600, 600, false);
 GEngine::Window *window;
+GEngine::Renderer *renderer;
 GEngine::InputManager *inputHandler;
 GEngine::GLProgram *sunprogram;
 IO::Timer MyTimer = IO::Timer();
@@ -38,29 +39,29 @@ GEngine::GLVertexArray* pointSprite;
 
 afwslot slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
-	if(inputHandler->isKeyPressed(GLFW_KEY_INSERT)) {
+	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_INSERT)) {
 		sunsize += 0.001f;
 		sunprogram->setValue("size", sunsize);
 	}
-	if(inputHandler->isKeyPressed(GLFW_KEY_DELETE)) {
+	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_DELETE)) {
 		sunsize -= 0.001f;
 		sunprogram->setValue("size", sunsize);
 	}
 
-	if(inputHandler->isKeyPressed(GLFW_KEY_1)) {
-		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.x -= 0.01f;
+	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_1)) {
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.x -= 0.01f;
 		else color_vec.x += 0.01f;
 		sunprogram->setValue("colour", color_vec);
 	}
 
-	if(inputHandler->isKeyPressed(GLFW_KEY_2)) {
-		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.y -= 0.01f;
+	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_2)) {
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.y -= 0.01f;
 		else color_vec.y += 0.01f;
 		sunprogram->setValue("colour", color_vec);
 	}
 
-	if(inputHandler->isKeyPressed(GLFW_KEY_3)) {
-		if(inputHandler->isKeyPressed(GLFW_KEY_LEFT_SHIFT)) color_vec.z -= 0.01f;
+	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_3)) {
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.z -= 0.01f;
 		else color_vec.z += 0.01f;
 		sunprogram->setValue("colour", color_vec);
 	}
@@ -76,8 +77,9 @@ afwslot slot_Window_on_render() {
 
 afwslot slot_MyApp_on_open()
 {
-	window = new GEngine::Window(MyGApp, "Testing GEngine", wp);
+	window = new GEngine::Window("Testing GEngine", wp);
 	inputHandler = new GEngine::InputManager(window);
+	renderer = GEngine::Renderer::Load();
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::GL::getVersion());
 	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
@@ -129,7 +131,7 @@ afwslot slot_MyApp_on_open()
 	while(!window->isClosed())
 	{
 		MyTimer.reset();
-		window->clear();
+		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
 		slot_Window_on_render();
 		window->update();
 		DebugManager::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
