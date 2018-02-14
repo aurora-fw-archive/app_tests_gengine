@@ -80,6 +80,8 @@ afwslot slot_MyApp_on_open()
 	wp.samples = 16;
 	wp.doubleBuffer = true;
 	wp.vsync = false;
+	//wp.stereo = true;
+
 	window = new GEngine::Window("Testing GEngine", wp);
 	inputHandler = new GEngine::InputManager(window);
 	renderer = GEngine::Renderer::Load();
@@ -137,6 +139,7 @@ afwslot slot_MyApp_on_open()
 	while(!window->isClosed())
 	{
 		MyTimer.reset();
+		renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
 		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
 		slot_Window_on_render();
 		window->update();
