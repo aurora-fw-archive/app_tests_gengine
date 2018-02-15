@@ -136,6 +136,8 @@ afwslot slot_MyApp_on_open()
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
 	GEngine::GL::clearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
+	inputHandler->addMouseButtonCallback([](GLFWwindow *, int, int, int) { std::cout << "*clicky*" << std::endl; });
+
 	while(!window->isClosed())
 	{
 		MyTimer.reset();
