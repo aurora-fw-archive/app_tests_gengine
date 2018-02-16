@@ -20,7 +20,7 @@
 
 using namespace AuroraFW;
 
-GEngine::Application MyGApp("Test GEngine", GEngine::API::OpenGL);
+GEngine::Application MyGApp(GEngine::API::OpenGL);
 GEngine::WindowProperties wp = GEngine::WindowProperties(600, 600, false);
 GEngine::Window *window;
 GEngine::Renderer *renderer;
@@ -138,7 +138,10 @@ afwslot slot_MyApp_on_open(Application* obj)
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
 	GEngine::GL::clearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
-	inputHandler->addMouseButtonCallback([](GLFWwindow *, int, int, int) { std::cout << "*clicky*" << std::endl; });
+	inputHandler->addMouseButtonCallback([](GLFWwindow *, int btn, int action, int mods) {
+		std::cout << "*clicky*: " <<
+			btn << ", " << action << ", " << mods << std::endl;
+	});
 
 	while(!window->isClosed())
 	{
