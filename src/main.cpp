@@ -88,6 +88,8 @@ afwslot slot_MyApp_on_open(Application* obj)
 			wp.doubleBuffer = static_cast<bool>(std::stoi(*++i));
 			psy_mode = true;
 		}
+		else if(*i == "-db")
+			wp.doubleBuffer = static_cast<bool>(std::stoi(*++i));
 	}
 
 	window = new GEngine::Window("Testing GEngine", wp);
