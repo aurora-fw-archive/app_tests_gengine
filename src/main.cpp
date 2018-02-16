@@ -20,7 +20,6 @@
 
 using namespace AuroraFW;
 
-Application *MyApp;
 GEngine::Application MyGApp("Test GEngine", GEngine::API::OpenGL);
 GEngine::WindowProperties wp = GEngine::WindowProperties(600, 600, false);
 GEngine::Window *window;
@@ -75,12 +74,15 @@ afwslot slot_Window_on_render() {
 	pointSprite->unbind();
 }
 
-afwslot slot_MyApp_on_open()
+afwslot slot_MyApp_on_open(Application* obj)
 {
-	wp.samples = 16;
-	wp.doubleBuffer = true;
-	wp.vsync = false;
-	//wp.stereo = true;
+	for (std::vector<std::string>::iterator i = obj->args.begin(); i != obj->args.end(); ++i)
+	{
+		if(*i == "--samples" || *i == "-s")
+			wp.samples = std::stoi(*++i);
+		else if(*i == "--vsync" || *i == "-vS")
+			wp.vsync = static_cast<bool>(std::stoi(*++i));
+	}
 
 	window = new GEngine::Window("Testing GEngine", wp);
 	inputHandler = new GEngine::InputManager(window);
@@ -108,13 +110,13 @@ afwslot slot_MyApp_on_open()
 
 	ibo = new GEngine::GLBuffer(GEngine::GL::IndexBuffer, sizeof(indices), indices);
 
-	pointSprite = new GEngine::GLVertexArray();
+	pointSprite = AFW_NEW GEngine::GLVertexArray();
 	GEngine::GLVertexBufferLayout spriteLayout;
 	spriteLayout.push<float>(3);
 	pointSprite->addBuffer(GEngine::GLBuffer(GEngine::GL::Array, sizeof(vertices), vertices), spriteLayout);
 
-	GEngine::GLShader *sunshader_vert = new GEngine::GLShader(GEngine::Vertex);
-	GEngine::GLShader *sunshader_frag = new GEngine::GLShader(GEngine::Fragment);
+	GEngine::GLShader *sunshader_vert = AFW_NEW GEngine::GLShader(GEngine::Vertex);
+	GEngine::GLShader *sunshader_frag = AFW_NEW GEngine::GLShader(GEngine::Fragment);
 	sunshader_vert->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.vert").c_str());
 	sunshader_frag->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.frag").c_str());
 
@@ -149,12 +151,14 @@ afwslot slot_MyApp_on_open()
 		DebugManager::Log("Size:\t", window->getWidth(), "*", window->getHeight());
 		DebugManager::Log("Input:\t", mx, ", ", my);
 	}
+	//delete sunprogram;
+
 	Application::ExitSuccess();
 }
 
 int main(int argc, char * argv[])
 {
-	MyApp = new Application(slot_MyApp_on_open, argc, argv);
+	Application *MyApp = AFW_NEW Application(argc, argv, slot_MyApp_on_open);
 	delete MyApp;
 	return 0;
 }
