@@ -76,12 +76,18 @@ afwslot slot_Window_on_render() {
 
 afwslot slot_MyApp_on_open(Application* obj)
 {
+	bool psy_mode = false;
 	for (std::vector<std::string>::iterator i = obj->args.begin(); i != obj->args.end(); ++i)
 	{
 		if(*i == "--samples" || *i == "-s")
 			wp.samples = std::stoi(*++i);
 		else if(*i == "--vsync" || *i == "-vS")
 			wp.vsync = static_cast<bool>(std::stoi(*++i));
+		else if(*i == "--psy")
+		{
+			wp.doubleBuffer = static_cast<bool>(std::stoi(*++i));
+			psy_mode = true;
+		}
 	}
 
 	window = new GEngine::Window("Testing GEngine", wp);
@@ -148,7 +154,10 @@ afwslot slot_MyApp_on_open(Application* obj)
 		MyTimer.reset();
 		renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
 		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
-		slot_Window_on_render();
+		if(psy_mode)
+			GEngine::GL::clearColor(static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), 1);
+		else
+			slot_Window_on_render();
 		window->update();
 		DebugManager::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
 		DebugManager::Log("Size:\t", window->getWidth(), "*", window->getHeight());
