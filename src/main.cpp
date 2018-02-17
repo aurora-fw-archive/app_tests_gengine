@@ -77,7 +77,7 @@ afwslot slot_Window_on_render() {
 afwslot slot_MyApp_on_open(Application* obj)
 {
 	bool psy_mode = false;
-	for (std::vector<std::string>::iterator i = obj->args.begin(); i != obj->args.end(); ++i)
+	for (std::vector<std::string>::iterator i = obj->args->begin(); i != obj->args->end(); ++i)
 	{
 		if(*i == "--samples" || *i == "-s")
 			wp.samples = std::stoi(*++i);
