@@ -18,14 +18,18 @@
 
 #include <AuroraFW/Aurora.h>
 
+#include <AuroraFW/GEngine/ImGui/Loader.h>
+
 using namespace AuroraFW;
 
-GEngine::Application MyGApp(GEngine::API::OpenGL);
-GEngine::WindowProperties wp = GEngine::WindowProperties(600, 600, false);
 GEngine::Window *window;
 GEngine::Renderer *renderer;
 GEngine::InputManager *inputHandler;
 GEngine::GLProgram *sunprogram;
+GEngine::ImGuiLoader *guiLoader;
+
+GEngine::Application MyGApp(GEngine::API::OpenGL);
+GEngine::WindowProperties wp(800, 600, false);
 IO::Timer MyTimer = IO::Timer();
 
 Math::Vector4D color_vec;
@@ -33,36 +37,37 @@ Math::Vector4D color_vec;
 double mx, my;
 float sunsize = 0.05f;
 
+bool debugWindow = true, menuWindow = true;
+IO::Timer framerateTimer = IO::Timer();
+std::array<float, 64> framerate;
+float tpf;
+
 GEngine::GLBuffer* ibo;
 GEngine::GLVertexArray* pointSprite;
 
 afwslot slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
+
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_INSERT)) {
-		sunsize += 0.001f;
-		sunprogram->setValue("size", sunsize);
+		sunsize += 0.001f * (1000.0f / framerate.back());
 	}
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_DELETE)) {
-		sunsize -= 0.001f;
-		sunprogram->setValue("size", sunsize);
+		sunsize -= 0.001f * (1000.0f / framerate.back());
 	}
 
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_1)) {
-		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.x -= 0.01f;
-		else color_vec.x += 0.01f;
-		sunprogram->setValue("colour", color_vec);
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.x -= 0.001f  * (1000.0f / framerate.back());
+		else color_vec.x += 0.001f * (1000.0f / framerate.back());
 	}
 
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_2)) {
-		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.y -= 0.01f;
-		else color_vec.y += 0.01f;
-		sunprogram->setValue("colour", color_vec);
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.y -= 0.001f * (1000.0f / framerate.back());
+		else color_vec.y += 0.001f * (1000.0f / framerate.back());
 	}
 
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_3)) {
-		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.z -= 0.01f;
-		else color_vec.z += 0.01f;
-		sunprogram->setValue("colour", color_vec);
+		if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_LEFT_SHIFT)) color_vec.z -= 0.001f  * (1000.0f / framerate.back());
+		else color_vec.z += 0.001f * (1000.0f / framerate.back());
 	}
 
 	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5 / window->getWidth()), (float)(0.5 - my * 0.5 / window->getHeight())));
@@ -72,6 +77,26 @@ afwslot slot_Window_on_render() {
 	GLCall(glDrawElements(GL_TRIANGLES, ibo->size()/(sizeof(ushort)), GL_UNSIGNED_SHORT, AFW_NULL));
 	ibo->unbind();
 	pointSprite->unbind();
+
+	if(debugWindow)
+	{
+		ImGui::Begin("Debug");
+		ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / framerate.back(), framerate.back());
+		ImGui::PlotLines("FPS", framerate.data(), framerate.size(), 0, NULL, FLT_MAX, FLT_MAX, ImVec2(300,50));
+		ImGui::Text("%d vertices, %d indices (%d triangles)", ImGui::GetIO().MetricsRenderVertices, ImGui::GetIO().MetricsRenderIndices, ImGui::GetIO().MetricsRenderIndices / 3);
+		ImGui::End();
+	}
+	if(menuWindow)
+	{
+		ImGui::Begin("GEngine Menu");
+		ImGui::ColorEdit4("Sun Color", (float*)&color_vec);
+		ImGui::SliderFloat("Sun Size", &sunsize, 0.0f, 1.0f);
+		ImGui::Separator();
+		ImGui::End();
+	}
+
+	sunprogram->setValue("colour", color_vec);
+	sunprogram->setValue("size", sunsize);
 }
 
 afwslot slot_MyApp_on_open(Application* obj)
@@ -92,9 +117,14 @@ afwslot slot_MyApp_on_open(Application* obj)
 			wp.doubleBuffer = static_cast<bool>(std::stoi(*++i));
 	}
 
-	window = new GEngine::Window("Testing GEngine", wp);
-	inputHandler = new GEngine::InputManager(window);
+	window = AFW_NEW GEngine::Window("Testing GEngine", wp);
+	inputHandler = AFW_NEW GEngine::InputManager(window);
 	renderer = GEngine::Renderer::Load();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	guiLoader = GEngine::ImGuiLoader::Load(window, inputHandler);
+
+	ImGui::StyleColorsDark();
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::GL::getVersion());
 	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
@@ -116,7 +146,7 @@ afwslot slot_MyApp_on_open(Application* obj)
 		2, 3, 0
 	};
 
-	ibo = new GEngine::GLBuffer(GEngine::GL::IndexBuffer, sizeof(indices), indices);
+	ibo = AFW_NEW GEngine::GLBuffer(GEngine::GL::IndexBuffer, sizeof(indices), indices);
 
 	pointSprite = AFW_NEW GEngine::GLVertexArray();
 	GEngine::GLVertexBufferLayout spriteLayout;
@@ -128,7 +158,7 @@ afwslot slot_MyApp_on_open(Application* obj)
 	sunshader_vert->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.vert").c_str());
 	sunshader_frag->compileFromSource(IO::readFile("apps/tests/gengine/rsrc/sun.frag").c_str());
 
-	sunprogram = new GEngine::GLProgram();
+	sunprogram = AFW_NEW GEngine::GLProgram();
 	sunprogram->addShader(sunshader_vert);
 	sunprogram->addShader(sunshader_frag);
 	sunprogram->generate();
@@ -147,32 +177,53 @@ afwslot slot_MyApp_on_open(Application* obj)
 	GEngine::GL::clearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
 	inputHandler->addMouseButtonCallback([](GLFWwindow *, int btn, int action, int mods) {
-		std::cout << "*clicky*: " <<
-			btn << ", " << action << ", " << mods << std::endl;
+		//std::cout << "*clicky*: " <<
+		//	btn << ", " << action << ", " << mods << std::endl;
 	});
 
-	while(!window->isClosed())
+	inputHandler->addKeyCallback([debugWindow, menuWindow](GLFWwindow* , int key, int , int action, int ) {
+		if(key == AFW_GENGINE_KEY_F3 && action == AFW_GENGINE_INPUT_PRESS) {
+			debugWindow = (debugWindow) ? false : true;
+		}
+
+		if(key == AFW_GENGINE_KEY_F1 && action == AFW_GENGINE_INPUT_PRESS) {
+			menuWindow = (menuWindow) ? false : true;
+		}
+	});
+
+	framerate.fill(0.0f);
+	while (!window->isClosed())
 	{
 		MyTimer.reset();
-		renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
+		window->update();
+		//renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
 		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
+		guiLoader->newFrame();
+
 		if(psy_mode)
 			GEngine::GL::clearColor(static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), 1);
 		else
 			slot_Window_on_render();
-		window->update();
-		DebugManager::Log("FPS:\t", (1000/MyTimer.elapsedMillis()));
-		DebugManager::Log("Size:\t", window->getWidth(), "*", window->getHeight());
-		DebugManager::Log("Input:\t", mx, ", ", my);
+		ImGui::Render();
+		guiLoader->renderDrawLists(ImGui::GetDrawData());
+		window->present();
+		tpf = MyTimer.elapsedMillis();
+		if (framerateTimer.elapsedMillis() > 100.0f)
+		{
+			framerateTimer.reset();
+			std::rotate(framerate.begin(), framerate.begin()+1,framerate.end());
+			framerate[framerate.size()-1] = 1000.0f / tpf;
+		}
 	}
 	//delete sunprogram;
+	guiLoader->Unload();
+	ImGui::DestroyContext();
 
 	Application::ExitSuccess();
 }
 
 int main(int argc, char * argv[])
 {
-	Application *MyApp = AFW_NEW Application(argc, argv, slot_MyApp_on_open);
-	delete MyApp;
+	Application MyApp(argc, argv, slot_MyApp_on_open);
 	return 0;
 }
