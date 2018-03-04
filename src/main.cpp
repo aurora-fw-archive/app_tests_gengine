@@ -36,6 +36,7 @@ Math::Vector4D color_vec;
 
 double mx, my;
 float sunsize = 0.05f;
+std::array<bool, 2> sun_visible = {true, false};
 
 bool debugWindow = true, menuWindow = true;
 IO::Timer framerateTimer = IO::Timer();
@@ -70,8 +71,6 @@ afwslot slot_Window_on_render() {
 		else color_vec.z += 0.001f * (1000.0f / framerate.back());
 	}
 
-	sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5 / window->getWidth()), (float)(0.5 - my * 0.5 / window->getHeight())));
-
 	pointSprite->bind();
 	ibo->bind();
 	GLCall(glDrawElements(GL_TRIANGLES, ibo->size()/(sizeof(ushort)), GL_UNSIGNED_SHORT, AFW_NULL));
@@ -89,14 +88,22 @@ afwslot slot_Window_on_render() {
 	if(menuWindow)
 	{
 		ImGui::Begin("GEngine Menu");
-		ImGui::ColorEdit4("Sun Color", (float*)&color_vec);
+		ImGui::Checkbox("Enable sun", sun_visible.data());
+		ImGui::ColorEdit4("Sun Color", (float *)&color_vec);
 		ImGui::SliderFloat("Sun Size", &sunsize, 0.0f, 1.0f);
 		ImGui::Separator();
 		ImGui::End();
 	}
 
-	sunprogram->setValue("colour", color_vec);
-	sunprogram->setValue("size", sunsize);
+	if(*sun_visible.begin())
+	{
+		if(*sun_visible.end()) sunprogram->enable();
+		sunprogram->setValue("colour", color_vec);
+		sunprogram->setValue("size", sunsize);
+		sunprogram->setValue("light_pos", Math::Vector2D((float)(mx * 0.5 / window->getWidth()), (float)(0.5 - my * 0.5 / window->getHeight())));
+	}
+	else
+		if(*sun_visible.end()) sunprogram->disable();
 }
 
 afwslot slot_MyApp_on_open(Application* obj)
@@ -123,8 +130,6 @@ afwslot slot_MyApp_on_open(Application* obj)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	guiLoader = GEngine::ImGuiLoader::Load(window, inputHandler);
-
-	ImGui::StyleColorsDark();
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::GL::getVersion());
 	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
@@ -168,11 +173,8 @@ afwslot slot_MyApp_on_open(Application* obj)
 	Math::Matrix4x4 ortho = Math::Matrix4x4::orthographic(0.0f, 0.5f, 0.0f, 0.5f, 0.5f, 0.0f);
 	sunprogram->setValue("pr_matrix", ortho);
 	sunprogram->setValue("ml_matrix", Math::Matrix4x4::translate(Math::Vector3D(0, 0, 0)));
-	sunprogram->setValue("light_pos", Math::Vector2D(0.5f, 0.5f));
-	sunprogram->setValue("size", 0.05f);
 	GEngine::ColorF pointerColor = GEngine::ColorF(GEngine::CommonColor::Brown);
 	color_vec = Math::Vector4D(pointerColor.r, pointerColor.g, pointerColor.b, pointerColor.a);
-	sunprogram->setValue("colour", color_vec);
 	GEngine::ColorF backgroundColor = GEngine::ColorF(GEngine::CommonColor::Yellow);
 	GEngine::GL::clearColor(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
@@ -181,14 +183,11 @@ afwslot slot_MyApp_on_open(Application* obj)
 		//	btn << ", " << action << ", " << mods << std::endl;
 	});
 
-	inputHandler->addKeyCallback([debugWindow, menuWindow](GLFWwindow* , int key, int , int action, int ) {
-		if(key == AFW_GENGINE_KEY_F3 && action == AFW_GENGINE_INPUT_PRESS) {
+	inputHandler->addKeyCallback([&debugWindow, &menuWindow](GLFWwindow* , int key, int , int action, int ) {
+		if(key == AFW_GENGINE_KEY_F3 && action == AFW_GENGINE_INPUT_PRESS)
 			debugWindow = (debugWindow) ? false : true;
-		}
-
-		if(key == AFW_GENGINE_KEY_F1 && action == AFW_GENGINE_INPUT_PRESS) {
+		if(key == AFW_GENGINE_KEY_F1 && action == AFW_GENGINE_INPUT_PRESS)
 			menuWindow = (menuWindow) ? false : true;
-		}
 	});
 
 	framerate.fill(0.0f);
@@ -196,7 +195,7 @@ afwslot slot_MyApp_on_open(Application* obj)
 	{
 		MyTimer.reset();
 		window->update();
-		//renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
+		renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
 		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
 		guiLoader->newFrame();
 
