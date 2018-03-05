@@ -18,6 +18,7 @@
 
 #include <AuroraFW/Aurora.h>
 
+#if 1
 #include <AuroraFW/GEngine/ImGui/Loader.h>
 
 using namespace AuroraFW;
@@ -46,7 +47,7 @@ float tpf;
 GEngine::GLBuffer* ibo;
 GEngine::GLVertexArray* pointSprite;
 
-afwslot slot_Window_on_render() {
+void slot_Window_on_render() {
 	inputHandler->getMousePosition(mx, my);
 
 	if(inputHandler->isKeyPressed(AFW_GENGINE_KEY_INSERT)) {
@@ -106,8 +107,11 @@ afwslot slot_Window_on_render() {
 		if(*sun_visible.end()) sunprogram->disable();
 }
 
-afwslot slot_MyApp_on_open(Application* obj)
+void slot_MyApp_on_open(Application* obj)
 {
+	wp.floating = true;
+	wp.resizable = true;
+	
 	bool psy_mode = false;
 	for (std::vector<std::string>::iterator i = obj->args->begin(); i != obj->args->end(); ++i)
 	{
@@ -226,3 +230,51 @@ int main(int argc, char * argv[])
 	Application MyApp(argc, argv, slot_MyApp_on_open);
 	return 0;
 }
+#else
+
+#include <AuroraFW/Core/ApplicationContext.h>
+#include <AuroraFW/Core/InputListener.h>
+#include <AuroraFW/GEngine/GraphicsContext.h>
+
+using namespace AuroraFW;
+
+class MyApplication : public ApplicationContext, InputListener, GEngine::GraphicsContext {
+public:
+	MyApplication(int& , char** );
+	void onStart();
+	void onClose();
+
+	bool keyReleased(const KeyboardEvent& );
+};
+
+bool MyApplication::keyReleased(const KeyboardEvent& )
+{
+	return true;
+}
+
+MyApplication::MyApplication(int& argc, char* argv[])
+	: ApplicationContext("GEngine Application Test", argc, argv),
+	GEngine::GraphicsContext("GEngine Test")
+{
+	addInputListener(this);
+}
+
+void MyApplication::onStart()
+{
+
+}
+
+void MyApplication::onClose()
+{
+
+}
+
+int main(int argc, char* argv[])
+{
+	MyApplication app(argc, argv);
+	app.start();
+	app.close();
+	return 0;
+}
+
+#endif
