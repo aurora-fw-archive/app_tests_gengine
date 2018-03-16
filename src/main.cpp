@@ -18,7 +18,7 @@
 
 #include <AuroraFW/Aurora.h>
 
-#if 1
+#if 0
 #include <AuroraFW/GEngine/ImGui/Loader.h>
 
 using namespace AuroraFW;
@@ -29,7 +29,7 @@ GEngine::InputManager *inputHandler;
 GEngine::GLProgram *sunprogram;
 GEngine::ImGuiLoader *guiLoader;
 
-GEngine::Application MyGApp(GEngine::API::OpenGL);
+GEngine::Application MyGApp(GEngine::API::Vulkan);
 GEngine::WindowProperties wp(800, 600, false);
 IO::Timer MyTimer = IO::Timer();
 
@@ -238,7 +238,7 @@ int main(int argc, char * argv[])
 
 using namespace AuroraFW;
 
-class MyApplication : public ApplicationContext, InputListener, GEngine::GraphicsContext {
+class MyApplication : public ApplicationContext, InputListener, public GEngine::GraphicsContext {
 public:
 	MyApplication(int& , char** );
 	void onStart();
@@ -254,7 +254,7 @@ bool MyApplication::keyReleased(const KeyboardEvent& )
 
 MyApplication::MyApplication(int& argc, char* argv[])
 	: ApplicationContext("GEngine Application Test", argc, argv),
-	GEngine::GraphicsContext("GEngine Test")
+	GEngine::GraphicsContext("GEngine Test", GEngine::API::Vulkan)
 {
 	addInputListener(this);
 }
@@ -273,6 +273,7 @@ int main(int argc, char* argv[])
 {
 	MyApplication app(argc, argv);
 	app.start();
+	//app.renderLoop();
 	app.close();
 	return 0;
 }
