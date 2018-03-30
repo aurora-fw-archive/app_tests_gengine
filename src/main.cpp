@@ -26,11 +26,9 @@ using namespace AuroraFW;
 GEngine::Window *window;
 GEngine::Renderer *renderer;
 GEngine::InputManager *inputHandler;
-GEngine::GLProgram *sunprogram;
-GEngine::ImGuiLoader *guiLoader;
 
-GEngine::Application MyGApp(GEngine::API::Vulkan);
-GEngine::WindowProperties wp(800, 600, false);
+GEngine::Application MyGApp(GEngine::API::OpenGL);
+GEngine::WindowProperties wp = {800, 600, false};
 IO::Timer MyTimer = IO::Timer();
 
 Math::Vector4D color_vec;
@@ -121,7 +119,6 @@ void slot_MyApp_on_open(Application* obj)
 			wp.vsync = static_cast<bool>(std::stoi(*++i));
 		else if(*i == "--psy")
 		{
-			wp.doubleBuffer = static_cast<bool>(std::stoi(*++i));
 			psy_mode = true;
 		}
 		else if(*i == "-db")
@@ -131,9 +128,6 @@ void slot_MyApp_on_open(Application* obj)
 	window = AFW_NEW GEngine::Window("Testing GEngine", wp);
 	inputHandler = AFW_NEW GEngine::InputManager(window);
 	renderer = GEngine::Renderer::Load();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO(); (void)io;
-	guiLoader = GEngine::ImGuiLoader::Load(window, inputHandler);
 
 	CLI::Log(CLI::Information, "OpenGL Version: ", GEngine::GL::getVersion());
 	CLI::Log(CLI::Information, "OpenGL Vendor: ", glGetString(GL_VENDOR));
@@ -199,9 +193,7 @@ void slot_MyApp_on_open(Application* obj)
 	{
 		MyTimer.reset();
 		window->update();
-		renderer->setViewport(0, 0, window->getWidth(), window->getHeight());
-		renderer->clear(GEngine::RENDERER_BUFFER_COLOR | GEngine::RENDERER_BUFFER_DEPTH);
-		guiLoader->newFrame();
+		
 
 		if(psy_mode)
 			GEngine::GL::clearColor(static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), static_cast <float> (rand()) / static_cast <float> (RAND_MAX), 1);
@@ -240,40 +232,37 @@ using namespace AuroraFW;
 
 class MyApplication : public ApplicationContext, InputListener, public GEngine::GraphicsContext {
 public:
-	MyApplication(int& , char** );
-	void onStart();
-	void onClose();
+	MyApplication(int& argc, char* argv[])
+		: ApplicationContext("GEngine Application Test", argc, argv),
+		GEngine::GraphicsContext("GEngine Test", GEngine::API::OpenGL)
+	{
+		addInputListener(this);
+	}
 
-	bool keyReleased(const KeyboardEvent& );
+	void onStart()
+	{
+		
+	}
+
+	void onRender()
+	{
+		ImGui::Begin("Debug");
+		ImGui::Text("Hello World in ImGui!");
+		ImGui::End();
+	}
+
+	bool keyPressed(const KeyboardEvent& e)
+	{
+		CLI::Output << e.key << CLI::EndLine;
+		return true;
+	}
 };
-
-bool MyApplication::keyReleased(const KeyboardEvent& )
-{
-	return true;
-}
-
-MyApplication::MyApplication(int& argc, char* argv[])
-	: ApplicationContext("GEngine Application Test", argc, argv),
-	GEngine::GraphicsContext("GEngine Test", GEngine::API::Vulkan)
-{
-	addInputListener(this);
-}
-
-void MyApplication::onStart()
-{
-
-}
-
-void MyApplication::onClose()
-{
-
-}
 
 int main(int argc, char* argv[])
 {
 	MyApplication app(argc, argv);
 	app.start();
-	//app.renderLoop();
+	app.renderLoop();
 	app.close();
 	return 0;
 }
