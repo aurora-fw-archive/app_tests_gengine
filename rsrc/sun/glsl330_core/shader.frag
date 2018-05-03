@@ -2,17 +2,21 @@
 
 precision highp float;
 
-layout (location = 0) out vec4 fragColor;
-in vec3 inSunCoord;
+layout (location = 0) out vec4 color;
 
-uniform blobSettings {
+uniform vec4 colour;
+uniform vec2 lightPos;
+uniform float size = 1.0;
+
+in DATA
+{
+	vec4 sunCoord;
 	vec4 color;
-	vec2 lightPos;
-	float size;
-};
+} fs_in;
 
 void main()
 {
-	float intensity = size / length(inSunCoord.xy - lightPos);
-	fragColor = color * intensity;
+	float intensity = size / length(fs_in.sunCoord.xy - lightPos);
+	//color = colour * intensity;
+	color = fs_in.color * intensity;
 }

@@ -2,17 +2,21 @@
 
 precision highp float;
 layout (location = 0) in vec4 position;
+layout (location = 1) in vec4 color;
 
-uniform blobSettings {
-	mat4 prMatrix;
-	mat4 vwMatrix;
-	mat4 mlMatrix;
-};
+uniform mat4 prMatrix;
+uniform mat4 vwMatrix = mat4(1.0);
+uniform mat4 mlMatrix = mat4(1.0);
 
-out vec4 sunCoord;
+out DATA
+{
+	vec4 sunCoord;
+	vec4 color;
+} vs_out;
 
 void main()
 {
 	gl_Position = prMatrix * vwMatrix * mlMatrix * position;
-	sunCoord = mlMatrix * position;
+	vs_out.sunCoord = mlMatrix * position;
+	vs_out.color = color;
 }

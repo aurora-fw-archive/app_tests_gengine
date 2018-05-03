@@ -18,14 +18,17 @@
 
 #include <AuroraFW/Core/ApplicationContext.h>
 #include <AuroraFW/Core/InputListener.h>
+#include <AuroraFW/Core/DebugManager.h>
 #include <AuroraFW/GEngine/GraphicsContext.h>
-#include <AuroraFW/GEngine/API/IndexBuffer.h>
-#include <AuroraFW/GEngine/API/VertexArray.h>
-#include <AuroraFW/GEngine/API/VertexBuffer.h>
+#include <AuroraFW/GEngine/Renderable2D.h>
+#include <AuroraFW/GEngine/Renderer2D.h>
 #include <AuroraFW/GEngine/API/Texture.h>
 #include <AuroraFW/GEngine/API/RTShader.h>
 #include <AuroraFW/GEngine/API/RTShaderPipeline.h>
+#include <AuroraFW/Image/BaseColor.h>
 #include <AuroraFW/CLI/Output.h>
+#include <AuroraFW/IO/File.h>
+#include <time.h>
 
 using namespace AuroraFW;
 using namespace GEngine;
@@ -44,51 +47,65 @@ public:
 		root->getRenderer()->setBlendFunction(API::Renderer::BlendFunction::SourceAlpha, API::Renderer::BlendFunction::OneMinusSourceAlpha);
 		root->getRenderer()->setBlend(true);
 
-		float vertices[] = {
-			-0.5f, -0.5f, 0.0f, 0.0f,
-			 0.5f, -0.5f, 1.0f, 0.0f,
-			 0.5f,  0.5f, 1.0f, 1.0f,
-			-0.5f,  0.5f, 0.0f, 1.0f
-		};
+		std::unique_ptr<API::RTShader> sunshader_vert = std::unique_ptr<API::RTShader>(API::RTShader::Load(Shader::Type::Vertex, "apps/tests/gengine/rsrc/sun/glsl330_core/shader.vert", API::RTShader::Language::GLSL, API::RTShader::LangVersion::GLSL330_CORE));
+		std::unique_ptr<API::RTShader> sunshader_frag = std::unique_ptr<API::RTShader>(API::RTShader::Load(Shader::Type::Fragment, "apps/tests/gengine/rsrc/sun/glsl330_core/shader.frag", API::RTShader::Language::GLSL, API::RTShader::LangVersion::GLSL330_CORE));
 
-		uint indices[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
+		_sunpipeline = std::unique_ptr<API::RTShaderPipeline>(API::RTShaderPipeline::Load({sunshader_vert.get(), sunshader_frag.get()}));
+
+		_sunpipeline->bind();
+
+		_sunpipeline->setValue("prMatrix", Math::Matrix4x4::orthographic(0.0f, 16.0f, 0.0f, 9.0f, -1.0f, 1.0f));
+		_sunpipeline->setValue("mlMatrix", Math::Matrix4x4::translate(Math::Vector3D(4, 3, 0)));
+
+		srand(time(NULL));
+
+		for (float y = -3.0f; y < 9.0f; y += 0.07)
+		{
+			for (float x = -4.0f; x < 12.0f; x += 0.07)
+			{
+				_sprites.push_back(AFW_NEW Renderable2D(Math::Vector3D(x, y, 0), Math::Vector2D(0.05f, 0.05f), ColorF(rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f, rand() % 1000 / 1000.0f)));
+			}
+		}
+
+		//_textureSprite = AFW_NEW Renderable2D(Math::Vector3D(5, 5, 0), Math::Vector2D(4, 4), ColorF(1.0f, 0.0f, 1.0f, 1.0f), _sunpipeline.get());
+		//_textureSprite2 = AFW_NEW Renderable2D(Math::Vector3D(7, 1, 0), Math::Vector2D(2, 3), ColorF(0.2f, 0.0f, 1.0f, 1.0f), _sunpipeline.get());
 		
-		API::VertexBuffer* spriteVBO = API::VertexBuffer::Load(vertices, sizeof(vertices));
+		_sunpipeline->setValue("lightPos", Math::Vector2D(4.0f, 1.5f));
+		_sunpipeline->setValue("colour", Math::Vector4D(0.2f, 0.3f, 0.8f, 1.0f));
 
-		_ibo = API::IndexBuffer::Load(indices, 6);
+		//_sampleTexture = std::unique_ptr<API::Texture>(API::Texture::Load("apps/tests/gengine/rsrc/logo.png"));
+		//_sampleTexture->bind(0);
 
-		_textureSprite = API::VertexArray::Load();
-		API::BufferLayout spriteLayout;
-		spriteLayout.push<float>(2);
-		spriteLayout.push<float>(2);
+		_renderer2d = AFW_NEW Renderer2D(root->getRenderer(), getWindow()->width(), getWindow()->height());
 
-		_textureSprite->addBuffer(spriteVBO, &spriteLayout);
-
-		API::RTShader* basicshader_vert = API::RTShader::Load(Shader::Type::Vertex, "apps/tests/gengine/rsrc/basic/glsl330_core/shader.vert", API::RTShader::Language::GLSL, API::RTShader::LangVersion::GLSL330_CORE);
-		API::RTShader* basicshader_frag = API::RTShader::Load(Shader::Type::Fragment, "apps/tests/gengine/rsrc/basic/glsl330_core/shader.frag", API::RTShader::Language::GLSL, API::RTShader::LangVersion::GLSL330_CORE);
-
-		_basicpipeline = API::RTShaderPipeline::Load({basicshader_vert, basicshader_frag});
-		_basicpipeline->generate();
-		_basicpipeline->bind();
-
-		_basicpipeline->setValue("u_Color", Math::Vector4D(0.8f, 0.3f, 0.8f, 1.0f));
-		_basicpipeline->setValue("u_Texture", 0);
-
-		API::Texture* _sampleTexture = API::Texture::Load("apps/tests/gengine/rsrc/logo.png");
-		_sampleTexture->bind();
-
-		delete _sampleTexture;
-		delete basicshader_frag;
-		delete basicshader_vert;
+		root->getRenderer()->setClearColor(ColorF(CommonColor::Black));
 	}
 
 	void onRender()
 	{
-		renderDebugGUI();
-		root->getRenderer()->draw(_textureSprite, _ibo, _basicpipeline);
+		debug_counter++;
+		//DebugManager::Log(debug_counter);
+		if(DebugManager::getStatus())
+			renderDebugGUI();
+		double x, y;
+		root->inputHandler->getMousePosition(x, y);
+
+		_sunpipeline->setValue("lightPos", Math::Vector2D((float)(x * 16.0f / getWindow()->width()), (float)(9.0f - y * 9.0f / getWindow()->height())));
+
+		_renderer2d->begin();
+		for (int i = 0; i < _sprites.size(); i++)
+		{
+			//DebugManager::Log(_sprites.size(), ": ", i);
+			_renderer2d->submit(_sprites[i]);
+		}
+		_renderer2d->end();
+		_renderer2d->present();
+	}
+
+	void onClose()
+	{
+		//delete _textureSprite;
+		delete _renderer2d;
 	}
 
 	bool keyPressed(const KeyboardEvent& e)
@@ -98,9 +115,11 @@ public:
 	}
 
 	private:
-		API::IndexBuffer* _ibo;
-		API::VertexArray* _textureSprite;
-		API::RTShaderPipeline* _basicpipeline;
+		std::vector<Renderable2D*> _sprites;
+		Renderer2D* _renderer2d;
+		std::unique_ptr<API::RTShaderPipeline> _sunpipeline;
+		std::unique_ptr<API::Texture> _sampleTexture;
+		size_t debug_counter = 0;
 };
 
 int main(int argc, char* argv[])
